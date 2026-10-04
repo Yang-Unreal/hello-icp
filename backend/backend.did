@@ -1,0 +1,34 @@
+type Time = int;
+type NoteVersion =
+ record {
+    author: text;
+    content: text;
+    tags: vec text;
+    timestamp: Time;
+    title: text;
+    version: nat;
+  };
+type NoteSummary =
+ record {
+    id: text;
+    title: text;
+    updatedAt: Time;
+  };
+type Note =
+ record {
+    createdAt: Time;
+    id: text;
+    versions: vec NoteVersion;
+  };
+service : {
+   createNote: (title: text, content: text, tags: vec text, author: text) ->
+    (Note);
+   deleteNote: (noteId: text) -> (bool);
+   getAllNotes: () -> (vec NoteSummary) query;
+   getNote: (noteId: text) -> (opt Note) query;
+   getNoteVersion: (noteId: text, version: nat) -> (opt NoteVersion) query;
+   getVersionHistory: (noteId: text) -> (opt vec NoteVersion) query;
+   proveExistence: (noteId: text, version: nat) -> (opt NoteVersion) query;
+   updateNote: (noteId: text, title: text, content: text, tags: vec text,
+    author: text) -> (opt Note);
+ }
