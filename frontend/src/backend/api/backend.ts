@@ -54,12 +54,14 @@ function record_opt_to_undefined<T>(arg: T | null): T | undefined {
 export interface Note {
     id: string;
     createdAt: Time;
+    parentId?: string;
     versions: Array<NoteVersion>;
 }
 export interface NoteSummary {
     id: string;
     title: string;
     updatedAt: Time;
+    parentId?: string;
 }
 export interface NoteVersion {
     title: string;
@@ -71,21 +73,21 @@ export interface NoteVersion {
 }
 export type Time = bigint;
 export interface backendInterface {
-    createNote(title: string, content: string, tags: Array<string>, author: string): Promise<Note>;
+    createNote(title: string, content: string, tags: Array<string>, author: string, parentId: string | null): Promise<Note>;
     deleteNote(noteId: string): Promise<boolean>;
     getAllNotes(): Promise<Array<NoteSummary>>;
+    getChildren(parentId: string): Promise<Array<NoteSummary>>;
     getNote(noteId: string): Promise<Note | null>;
     getNoteVersion(noteId: string, version: bigint): Promise<NoteVersion | null>;
     getVersionHistory(noteId: string): Promise<Array<NoteVersion> | null>;
-    proveExistence(noteId: string, version: bigint): Promise<NoteVersion | null>;
     updateNote(noteId: string, title: string, content: string, tags: Array<string>, author: string): Promise<Note | null>;
 }
-import type { Note as _Note, NoteVersion as _NoteVersion } from "./declarations/backend.did";
+import type { Note as _Note, NoteSummary as _NoteSummary, NoteVersion as _NoteVersion, Time as _Time } from "./declarations/backend.did";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>){}
-    async createNote(arg0: string, arg1: string, arg2: Array<string>, arg3: string): Promise<Note> {
-        const result = await this.actor.createNote(arg0, arg1, arg2, arg3);
-        return result;
+    async createNote(arg0: string, arg1: string, arg2: Array<string>, arg3: string, arg4: string | null): Promise<Note> {
+        const result = await this.actor.createNote(arg0, arg1, arg2, arg3, to_candid_opt_n1(arg4));
+        return from_candid_Note_n2(result);
     }
     async deleteNote(arg0: string): Promise<boolean> {
         const result = await this.actor.deleteNote(arg0);
@@ -93,37 +95,88 @@ export class Backend implements backendInterface {
     }
     async getAllNotes(): Promise<Array<NoteSummary>> {
         const result = await this.actor.getAllNotes();
-        return result;
+        return from_candid_vec_n5(result);
+    }
+    async getChildren(arg0: string): Promise<Array<NoteSummary>> {
+        const result = await this.actor.getChildren(arg0);
+        return from_candid_vec_n5(result);
     }
     async getNote(arg0: string): Promise<Note | null> {
         const result = await this.actor.getNote(arg0);
-        return from_candid_opt_n1(result);
+        return from_candid_opt_n8(result);
     }
     async getNoteVersion(arg0: string, arg1: bigint): Promise<NoteVersion | null> {
         const result = await this.actor.getNoteVersion(arg0, arg1);
-        return from_candid_opt_n2(result);
+        return from_candid_opt_n9(result);
     }
     async getVersionHistory(arg0: string): Promise<Array<NoteVersion> | null> {
         const result = await this.actor.getVersionHistory(arg0);
-        return from_candid_opt_n3(result);
-    }
-    async proveExistence(arg0: string, arg1: bigint): Promise<NoteVersion | null> {
-        const result = await this.actor.proveExistence(arg0, arg1);
-        return from_candid_opt_n2(result);
+        return from_candid_opt_n10(result);
     }
     async updateNote(arg0: string, arg1: string, arg2: string, arg3: Array<string>, arg4: string): Promise<Note | null> {
         const result = await this.actor.updateNote(arg0, arg1, arg2, arg3, arg4);
-        return from_candid_opt_n1(result);
+        return from_candid_opt_n8(result);
     }
 }
-function from_candid_opt_n1(value: [] | [_Note]): Note | null {
+function from_candid_NoteSummary_n6(value: _NoteSummary): NoteSummary {
+    return from_candid_record_n7(value);
+}
+function from_candid_Note_n2(value: _Note): Note {
+    return from_candid_record_n3(value);
+}
+function from_candid_opt_n10(value: [] | [Array<_NoteVersion>]): Array<NoteVersion> | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n2(value: [] | [_NoteVersion]): NoteVersion | null {
+function from_candid_opt_n4(value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n3(value: [] | [Array<_NoteVersion>]): Array<NoteVersion> | null {
+function from_candid_opt_n8(value: [] | [_Note]): Note | null {
+    return value.length === 0 ? null : from_candid_Note_n2(value[0]);
+}
+function from_candid_opt_n9(value: [] | [_NoteVersion]): NoteVersion | null {
     return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n3(value: {
+    id: string;
+    createdAt: _Time;
+    parentId: [] | [string];
+    versions: Array<_NoteVersion>;
+}): {
+    id: string;
+    createdAt: Time;
+    parentId?: string;
+    versions: Array<NoteVersion>;
+} {
+    return {
+        id: value.id,
+        createdAt: value.createdAt,
+        parentId: record_opt_to_undefined(from_candid_opt_n4(value.parentId)),
+        versions: value.versions
+    };
+}
+function from_candid_record_n7(value: {
+    id: string;
+    title: string;
+    updatedAt: _Time;
+    parentId: [] | [string];
+}): {
+    id: string;
+    title: string;
+    updatedAt: Time;
+    parentId?: string;
+} {
+    return {
+        id: value.id,
+        title: value.title,
+        updatedAt: value.updatedAt,
+        parentId: record_opt_to_undefined(from_candid_opt_n4(value.parentId))
+    };
+}
+function from_candid_vec_n5(value: Array<_NoteSummary>): Array<NoteSummary> {
+    return value.map((x)=>from_candid_NoteSummary_n6(x));
+}
+function to_candid_opt_n1(value: string | null): [] | [string] {
+    return value === null ? candid_none() : candid_some(value);
 }
 export interface CreateActorOptions {
     agent?: Agent;

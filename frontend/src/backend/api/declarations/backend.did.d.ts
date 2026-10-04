@@ -13,12 +13,14 @@ import type { Principal } from '@icp-sdk/core/principal';
 export interface Note {
   'id' : string,
   'createdAt' : Time,
+  'parentId' : [] | [string],
   'versions' : Array<NoteVersion>,
 }
 export interface NoteSummary {
   'id' : string,
   'title' : string,
   'updatedAt' : Time,
+  'parentId' : [] | [string],
 }
 export interface NoteVersion {
   'title' : string,
@@ -30,13 +32,16 @@ export interface NoteVersion {
 }
 export type Time = bigint;
 export interface _SERVICE {
-  'createNote' : ActorMethod<[string, string, Array<string>, string], Note>,
+  'createNote' : ActorMethod<
+    [string, string, Array<string>, string, [] | [string]],
+    Note
+  >,
   'deleteNote' : ActorMethod<[string], boolean>,
   'getAllNotes' : ActorMethod<[], Array<NoteSummary>>,
+  'getChildren' : ActorMethod<[string], Array<NoteSummary>>,
   'getNote' : ActorMethod<[string], [] | [Note]>,
   'getNoteVersion' : ActorMethod<[string, bigint], [] | [NoteVersion]>,
   'getVersionHistory' : ActorMethod<[string], [] | [Array<NoteVersion>]>,
-  'proveExistence' : ActorMethod<[string, bigint], [] | [NoteVersion]>,
   'updateNote' : ActorMethod<
     [string, string, string, Array<string>, string],
     [] | [Note]

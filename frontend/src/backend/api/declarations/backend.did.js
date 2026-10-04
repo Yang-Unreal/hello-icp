@@ -21,22 +21,25 @@ export const idlFactory = ({ IDL }) => {
   const Note = IDL.Record({
     'id' : IDL.Text,
     'createdAt' : Time,
+    'parentId' : IDL.Opt(IDL.Text),
     'versions' : IDL.Vec(NoteVersion),
   });
   const NoteSummary = IDL.Record({
     'id' : IDL.Text,
     'title' : IDL.Text,
     'updatedAt' : Time,
+    'parentId' : IDL.Opt(IDL.Text),
   });
   
   return IDL.Service({
     'createNote' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Vec(IDL.Text), IDL.Text],
+        [IDL.Text, IDL.Text, IDL.Vec(IDL.Text), IDL.Text, IDL.Opt(IDL.Text)],
         [Note],
         [],
       ),
     'deleteNote' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'getAllNotes' : IDL.Func([], [IDL.Vec(NoteSummary)], ['query']),
+    'getChildren' : IDL.Func([IDL.Text], [IDL.Vec(NoteSummary)], ['query']),
     'getNote' : IDL.Func([IDL.Text], [IDL.Opt(Note)], ['query']),
     'getNoteVersion' : IDL.Func(
         [IDL.Text, IDL.Nat],
@@ -46,11 +49,6 @@ export const idlFactory = ({ IDL }) => {
     'getVersionHistory' : IDL.Func(
         [IDL.Text],
         [IDL.Opt(IDL.Vec(NoteVersion))],
-        ['query'],
-      ),
-    'proveExistence' : IDL.Func(
-        [IDL.Text, IDL.Nat],
-        [IDL.Opt(NoteVersion)],
         ['query'],
       ),
     'updateNote' : IDL.Func(

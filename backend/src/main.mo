@@ -15,6 +15,7 @@ actor {
 
   public type Note = {
     id : Text;
+    parentId : ?Text;
     versions : [NoteVersion];
     createdAt : Time.Time;
   };
@@ -23,10 +24,11 @@ actor {
     id : Text;
     title : Text;
     updatedAt : Time.Time;
+    parentId : ?Text;
   };
 
-  var notes : [Note] = [];
-  var nextId : Nat = 1;
+  stable var notes : [Note] = [];
+  stable var nextId : Nat = 1;
 
   func findNote(noteId : Text) : ?Note {
     Array.find(notes, func(n : Note) : Bool { n.id == noteId });
@@ -46,7 +48,7 @@ actor {
     }
   };
 
-  public func createNote(title : Text, content : Text, tags : [Text], author : Text) : async Note {
+  public func createNote(title : Text, content : Text, tags : [Text], author : Text, parentId : ?Text) : async Note {
     let id = Nat.toText(nextId);
     nextId += 1;
     let now = Time.now();
@@ -60,6 +62,7 @@ actor {
     };
     let note : Note = {
       id = id;
+      parentId = parentId;
       versions = [version];
       createdAt = now;
     };
@@ -89,6 +92,7 @@ actor {
         };
         let updatedNote : Note = {
           id = note.id;
+          parentId = note.parentId;
           versions = Array.append(versions, [newVersion]);
           createdAt = note.createdAt;
         };
@@ -125,6 +129,32 @@ actor {
     }
   };
 
+  public query func getChildren(parentId : Text) : async [NoteSummary] {
+    let children = Array.filter(notes, func(n : Note) : Bool {
+      switch (n.parentId) {
+        case null { false };
+        case (?pid) { pid == parentId };
+      }
+    });
+    Array.map(children, func(n : Note) : NoteSummary {
+      let lastTitle = if (n.versions.size() > 0) {
+        ?n.versions[n.versions.size() - 1]
+      } else { null };
+      let title = switch (lastTitle) {
+        case null { "" };
+        case (?v) { v.title };
+      };
+      let lastTime = if (n.versions.size() > 0) {
+        ?n.versions[n.versions.size() - 1]
+      } else { null };
+      let time = switch (lastTime) {
+        case null { n.createdAt };
+        case (?v) { v.timestamp };
+      };
+      { id = n.id; title = title; updatedAt = time; parentId = n.parentId }
+    })
+  };
+
   public query func getAllNotes() : async [NoteSummary] {
     Array.map(notes, func(n : Note) : NoteSummary {
       let lastTitle = if (n.versions.size() > 0) {
@@ -141,11 +171,7 @@ actor {
         case null { n.createdAt };
         case (?v) { v.timestamp };
       };
-      { id = n.id; title = title; updatedAt = time }
+      { id = n.id; title = title; updatedAt = time; parentId = n.parentId }
     })
-  };
-
-  public query func proveExistence(noteId : Text, version : Nat) : async ?NoteVersion {
-    findVersion(noteId, version)
   };
 };

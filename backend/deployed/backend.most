@@ -1,0 +1,22 @@
+// Version: 1.0.0
+type NoteVersion__963669866 =
+  {
+    author : Text;
+    content : Text;
+    tags : [Text];
+    timestamp : Time__38388344;
+    title : Text;
+    version : Nat
+  };
+type Note__685718822 =
+  {
+    createdAt : Time__38388344;
+    id : Text;
+    parentId : ?Text;
+    versions : [NoteVersion__963669866]
+  };
+type Time__38388344 = Int;
+actor {
+  stable var nextId : Nat;
+  stable var notes : [Note__685718822]
+};
